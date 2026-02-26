@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RSS 订阅源管理 - 今天看点啥</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        
+        .header-left {
+            flex: 1;
+        }
+        
+        .header-right {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .logout-button {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.3s;
+            white-space: nowrap;
+        }
+        
+        .logout-button:hover {
+            background: #da190b;
+        }
+        
+        .add-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background 0.3s;
+        }
+        
+        .add-button:hover {
+            background: #5568d3;
+        }
+        
+        .sources-list {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .source-item {
+            border-bottom: 1px solid #eee;
+            padding: 20px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .source-item:last-child {
+            border-bottom: none;
+        }
+        
+        .source-info {
+            flex: 1;
+        }
+        
+        .source-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .source-url {
+            font-size: 13px;
+            color: #999;
+            word-break: break-all;
+            margin-bottom: 8px;
+        }
+        
+        .source-slug {
+            font-size: 13px;
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .source-slug::before {
+            content: "🔑 Slug: ";
+            color: #999;
+            font-weight: normal;
+        }
+        
+        .source-description {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .source-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-edit {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .btn-edit:hover {
+            background: #45a049;
+        }
+        
+        .btn-delete {
+            background: #f44336;
+            color: white;
+        }
+        
+        .btn-delete:hover {
+            background: #da190b;
+        }
+        
+        .btn-toggle {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .btn-toggle:hover {
+            background: #e68900;
+        }
+        
+        .source-disabled {
+            opacity: 0.5;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .status-enabled {
+            background: #e8f5e9;
+            color: #4caf50;
+        }
+        
+        .status-disabled {
+            background: #ffebee;
+            color: #f44336;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.show {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 30px;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+            padding: 12px 24px;
+        }
+        
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+        
+        .btn-secondary {
+            background: #ddd;
+            color: #333;
+            padding: 12px 24px;
+        }
+        
+        .btn-secondary:hover {
+            background: #ccc;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+        
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-left">
+                <h1>📰 RSS 订阅源管理</h1>
+                <p>管理"今天看点啥"公众号 RSS 订阅源，配置 AI 资讯推送内容</p>
+                <button class="add-button" onclick="showAddModal()">➕ 添加 RSS 源</button>
+            </div>
+            <div class="header-right">
+                <button class="logout-button" onclick="logout()">🚪 退出登录</button>
+            </div>
+        </div>
+        
+        <div class="sources-list">
+            <div id="sourcesList">
+                <!-- 动态加载 -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- 添加/编辑模态框 -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header" id="modalTitle">添加 RSS 源</div>
+            <form id="editForm">
+                <input type="hidden" id="editId" value="">
+                
+                <div class="form-group">
+                    <label for="editName">公众号名称 *</label>
+                    <input type="text" id="editName" required placeholder="例如: 机器之心">
+                </div>
+                
+                <div class="form-group">
+                    <label for="editSlug">Slug (唯一标识) *</label>
+                    <input type="text" id="editSlug" required placeholder="例如: pJMG8ZXFLd" pattern="[A-Za-z0-9_-]+" title="只能包含字母、数字、下划线和横线">
+                    <small style="color: #999; font-size: 12px; display: block; margin-top: 4px;">
+                        用于 API4 接口调用的唯一标识符 (只能包含字母、数字、下划线和横线)
+                    </small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editUrl">RSS 链接 *</label>
+                    <input type="url" id="editUrl" required placeholder="http://rss.jintiankansha.me/rss/...">
+                </div>
+                
+                <div class="form-group">
+                    <label for="editDescription">描述</label>
+                    <textarea id="editDescription" placeholder="简单描述该公众号的内容特点（可选）"></textarea>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        // 加载所有 RSS 源
+        async function loadSources() {
+            try {
+                const response = await fetch('/api/sources');
+                
+                // 检查是否需要登录
+                if (response.status === 401) {
+                    window.location.href = '/login';
+                    return;
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    renderSources(result.data);
+                }
+            } catch (error) {
+                console.error('加载失败:', error);
+                alert('加载数据失败');
+            }
+        }
+        
+        // 渲染 RSS 源列表
+        function renderSources(sources) {
+            const container = document.getElementById('sourcesList');
+            
+            if (sources.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <p>还没有添加 RSS 订阅源</p>
+                        <p>点击上方按钮开始添加</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = sources.map(source => {
+                const enabled = source.enabled !== false;
+                const statusClass = enabled ? 'status-enabled' : 'status-disabled';
+                const statusText = enabled ? '已启用' : '已禁用';
+                const itemClass = enabled ? '' : 'source-disabled';
+                
+                return `
+                    <div class="source-item ${itemClass}">
+                        <div class="source-info">
+                            <div class="source-name">
+                                ${source.name}
+                                <span class="status-badge ${statusClass}">${statusText}</span>
+                            </div>
+                            ${source.slug ? `<div class="source-slug">${source.slug}</div>` : ''}
+                            <div class="source-url">${source.url}</div>
+                            ${source.description ? `<div class="source-description">${source.description}</div>` : ''}
+                        </div>
+                        <div class="source-actions">
+                            <button class="btn btn-toggle" onclick="toggleSource('${source.id}')">
+                                ${enabled ? '禁用' : '启用'}
+                            </button>
+                            <button class="btn btn-edit" onclick="showEditModal('${source.id}')">编辑</button>
+                            <button class="btn btn-delete" onclick="deleteSource('${source.id}')">删除</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // 显示添加模态框
+        function showAddModal() {
+            document.getElementById('modalTitle').textContent = '添加 RSS 源';
+            document.getElementById('editForm').reset();
+            document.getElementById('editId').value = '';
+            document.getElementById('editSlug').removeAttribute('readonly');
+            document.getElementById('editModal').classList.add('show');
+        }
+        
+        // 显示编辑模态框
+        async function showEditModal(sourceId) {
+            try {
+                const response = await fetch('/api/sources');
+                const result = await response.json();
+                
+                if (result.success) {
+                    const source = result.data.find(s => s.id === sourceId);
+                    if (source) {
+                        document.getElementById('modalTitle').textContent = '编辑 RSS 源';
+                        document.getElementById('editId').value = source.id;
+                        document.getElementById('editName').value = source.name;
+                        document.getElementById('editSlug').value = source.slug || '';
+                        document.getElementById('editSlug').setAttribute('readonly', 'readonly');
+                        document.getElementById('editUrl').value = source.url;
+                        document.getElementById('editDescription').value = source.description || '';
+                        document.getElementById('editModal').classList.add('show');
+                    }
+                }
+            } catch (error) {
+                console.error('加载失败:', error);
+                alert('加载数据失败');
+            }
+        }
+        
+        // 关闭模态框
+        function closeModal() {
+            document.getElementById('editModal').classList.remove('show');
+        }
+        
+        // 提交表单
+        document.getElementById('editForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const id = document.getElementById('editId').value;
+            const data = {
+                name: document.getElementById('editName').value,
+                slug: document.getElementById('editSlug').value,
+                url: document.getElementById('editUrl').value,
+                description: document.getElementById('editDescription').value
+            };
+            
+            try {
+                let response;
+                if (id) {
+                    // 更新
+                    response = await fetch(`/api/sources/${id}`, {
+                        method: 'PUT',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify(data)
+                    });
+                } else {
+                    // 新增
+                    response = await fetch('/api/sources', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify(data)
+                    });
+                }
+                
+                const result = await response.json();
+                if (result.success) {
+                    closeModal();
+                    loadSources();
+                    alert(result.message);
+                } else {
+                    alert(result.message || '操作失败');
+                }
+            } catch (error) {
+                console.error('操作失败:', error);
+                alert('操作失败');
+            }
+        });
+        
+        // 切换启用/禁用
+        async function toggleSource(sourceId) {
+            try {
+                const response = await fetch(`/api/sources/${sourceId}/toggle`, {
+                    method: 'POST'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    loadSources();
+                } else {
+                    alert(result.message || '操作失败');
+                }
+            } catch (error) {
+                console.error('操作失败:', error);
+                alert('操作失败');
+            }
+        }
+        
+        // 删除 RSS 源
+        async function deleteSource(sourceId) {
+            if (!confirm('确定要删除这个 RSS 源吗？')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/sources/${sourceId}`, {
+                    method: 'DELETE'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    loadSources();
+                    alert('删除成功');
+                } else {
+                    alert(result.message || '删除失败');
+                }
+            } catch (error) {
+                console.error('删除失败:', error);
+                alert('删除失败');
+            }
+        }
+        
+        // 点击模态框外部关闭
+        document.getElementById('editModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                closeModal();
+            }
+        });
+        
+        // 退出登录
+        function logout() {
+            if (confirm('确定要退出登录吗？')) {
+                window.location.href = '/logout';
+            }
+        }
+        
+        // 页面加载时获取数据
+        loadSources();
+    </script>
+</body>
+</html>

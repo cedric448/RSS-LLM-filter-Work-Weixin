@@ -1,0 +1,37 @@
+{
+  "categories": [
+    {
+      "name": "AIGC",
+      "keywords": ["生成式AI", "AIGC", "内容生成", "文生图", "文生视频", "AI绘画", "AI写作", "AI生成"],
+      "description": "生成式人工智能内容",
+      "weight": 1.0
+    },
+    {
+      "name": "AI初创",
+      "keywords": ["AI初创", "AI公司", "AI创业", "AI企业", "AI团队", "AI独角兽", "AI新贵"],
+      "description": "AI初创公司动态",
+      "weight": 1.0
+    },
+    {
+      "name": "AI融资",
+      "keywords": ["AI融资", "AI投资", "AI估值", "AI IPO", "AI并购", "AI融资额", "AI投资人", "AI资本"],
+      "description": "AI领域投融资新闻",
+      "weight": 1.0
+    },
+    {
+      "name": "大模型",
+      "keywords": ["大模型", "LLM", "GPT", "Claude", "Transformer", "BERT", "预训练模型", "基础模型"],
+      "description": "大语言模型技术进展",
+      "weight": 1.0
+    },
+    {
+      "name": "AI产品",
+      "keywords": ["AI产品", "AI应用", "AI工具", "AI助手", "AI Agent", "AI智能体", "AI服务", "AI平台"],
+      "description": "AI产品发布和评测",
+      "weight": 1.0
+    }
+  ],
+  "match_mode": "semantic",
+  "threshold": 0.6,
+  "prompt_template": "你是一位专业的 AI 领域内容筛选助手。\n\n任务：判断以下文章是否与 AI 相关，并分类。\n\n筛选规则（语义匹配，非关键词精确匹配）：\n- AIGC: 生成式AI、AI内容生成、文生图、文生视频等\n- AI初创: AI创业公司、AI团队、AI独角兽等\n- AI融资: AI投资、融资、估值、IPO等\n- 大模型: LLM、GPT、Claude、Transformer等技术\n- AI产品: AI应用、AI工具、AI助手、AI Agent等\n\n待筛选文章：\n{articles}\n\n请输出 JSON 格式：\n{{\n  \"results\": [\n    {{\n      \"index\": 1,\n      \"title\": \"文章标题\",\n      \"relevant\": true/false,\n      \"categories\": [\"AI融资\", \"大模型\"],\n      \"reason\": \"简要说明匹配原因\",\n      \"confidence\": 0.85\n    }}\n  ]\n}}"
+}

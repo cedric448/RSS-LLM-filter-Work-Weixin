@@ -1,0 +1,94 @@
+{
+  "showTokensCounter": true,
+  "sandbox": {
+    "enabled": false,
+    "autoAllowBashIfSandboxed": true,
+    "network": {
+      "allowedDomains": [],
+      "deniedDomains": [],
+      "allowLocalBinding": false,
+      "allowUnixSockets": [],
+      "allowAllUnixSockets": false
+    },
+    "filesystem": {
+      "denyRead": [
+        "~/.ssh",
+        "~/.aws",
+        "~/.gcp"
+      ],
+      "allowWrite": [
+        ".",
+        "/dev/stdout",
+        "/dev/stderr",
+        "/dev/null",
+        "/dev/tty",
+        "/dev/dtracehelper",
+        "/dev/autofs_nowait",
+        "/tmp/codebuddy",
+        "/private/tmp/codebuddy",
+        "~/.npm/_logs",
+        "~/.codebuddy/debug",
+        "~/.codebuddy/statsig",
+        "/root/.codebuddy/debug",
+        "/root/.codebuddy/statsig"
+      ],
+      "denyWrite": [
+        "~/.codebuddy/settings.json",
+        "~/.codebuddy/settings.local.json",
+        ".codebuddy/settings.json",
+        ".codebuddy/settings.local.json",
+        "/root/.codebuddy/settings.json",
+        "/root/.codebuddy/settings.local.json",
+        "/root/project-wb/.codebuddy/settings.json",
+        "/root/project-wb/.codebuddy/settings.local.json",
+        "/root/project-wb/image-gen/.codebuddy/settings.json",
+        "/root/project-wb/image-gen/.codebuddy/settings.local.json",
+        "/root/project-wb/PAI/.codebuddy/settings.json",
+        "/root/project-wb/PAI/.codebuddy/settings.local.json",
+        "/root/project-wb/seed2.0/.codebuddy/settings.json",
+        "/root/project-wb/seed2.0/.codebuddy/settings.local.json",
+        "/root/project-wb/bettafish/.codebuddy/settings.json",
+        "/root/project-wb/bettafish/.codebuddy/settings.local.json",
+        "/root/project-wb/browser-use/.codebuddy/settings.json",
+        "/root/project-wb/browser-use/.codebuddy/settings.local.json",
+        "/root/project-wb/book/.codebuddy/settings.json",
+        "/root/project-wb/book/.codebuddy/settings.local.json",
+        "/root/project-wb/aira2/.codebuddy/settings.json",
+        "/root/project-wb/aira2/.codebuddy/settings.local.json",
+        "/root/project-wb/dingtalk-bot/.codebuddy/settings.json",
+        "/root/project-wb/dingtalk-bot/.codebuddy/settings.local.json",
+        "/root/project-wb/dingtalk_bot/.codebuddy/settings.json",
+        "/root/project-wb/dingtalk_bot/.codebuddy/settings.local.json",
+        "/root/project-wb/wechat/.codebuddy/settings.json",
+        "/root/project-wb/wechat/.codebuddy/settings.local.json",
+        "/root/project-wb/zlzchat/.codebuddy/settings.json",
+        "/root/project-wb/zlzchat/.codebuddy/settings.local.json",
+        "/root/project-wb/n8n/.codebuddy/settings.json",
+        "/root/project-wb/n8n/.codebuddy/settings.local.json"
+      ]
+    },
+    "excludedCommands": [],
+    "allowUnsandboxedCommands": true,
+    "enableWeakerNestedSandbox": false
+  },
+  "permissions": {
+    "defaultMode": "bypassPermission",
+    "allow": [
+      "Read",
+      "Edit",
+      "Bash(*:*)"
+    ]
+  },
+  "trustedDirectories": [
+    "/root/project-wb/**"
+  ],
+  "language": "简体中文",
+  "model": "claude-4.5",
+  "trustAll": true,
+  "ignoreGitIgnore": true,
+  "textToImageModel": "hunyuan-image-v3.0-ioa",
+  "enabledPlugins": {
+    "superpowers@superpowers-marketplace": true
+  },
+  "alwaysThinkingEnabled": true
+}

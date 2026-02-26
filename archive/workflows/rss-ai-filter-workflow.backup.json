@@ -1,0 +1,256 @@
+{
+  "name": "RSS AI Filter Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 1
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://rss.jintiankansha.me/rss/GE2XYOJZGEYDONBRGQ4GKMJWGI4DSNJZGAZWIZBSGI3DAMTEGY2TIOJYMQ3TOMZWMVQTO===",
+        "method": "GET",
+        "responseFormat": "string"
+      },
+      "id": "fetch-rss-chuangyebang",
+      "name": "Fetch RSS 创业邦",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [450, 250]
+    },
+    {
+      "parameters": {
+        "url": "http://rss.jintiankansha.me/rss/G42TC7BZGQ2GCNZRMVSGCZBSGY2GCM3BMI2DKNTEG43GCNTBGVSDQZDBGJQTMNZSGA4WGNI=",
+        "method": "GET",
+        "responseFormat": "string"
+      },
+      "id": "fetch-rss-jiqizhixin",
+      "name": "Fetch RSS 机器之心",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [450, 350]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 合并两个 RSS Feed 的数据\nconst parseRSS = (xmlString, sourceName) => {\n  const items = [];\n  const itemRegex = /<item[^>]*>([\\s\\S]*?)<\\/item>/g;\n  let match;\n  \n  while ((match = itemRegex.exec(xmlString)) !== null) {\n    const itemXml = match[1];\n    \n    const getTagContent = (tag) => {\n      const regex = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'i');\n      const m = regex.exec(itemXml);\n      return m ? m[1].replace(/<!\\[CDATA\\[|\\]\\]>/g, '').trim() : '';\n    };\n    \n    items.push({\n      title: getTagContent('title'),\n      link: getTagContent('link'),\n      summary: getTagContent('description').substring(0, 500),\n      pub_date: getTagContent('pubDate'),\n      source_name: sourceName\n    });\n  }\n  \n  return items;\n};\n\nconst items = $input.all();\nlet allArticles = [];\n\nfor (const item of items) {\n  const sourceName = item.json.node?.name || 'Unknown';\n  const xmlContent = typeof item.json === 'string' ? item.json : item.json.data || '';\n  const articles = parseRSS(xmlContent, sourceName);\n  allArticles = allArticles.concat(articles);\n}\n\nreturn [{\n  json: {\n    articles: allArticles\n  }\n}];"
+      },
+      "id": "merge-rss",
+      "name": "Merge RSS Feeds",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 检查当前时间是否是推送时间（8:55, 12:55, 19:55）\nconst now = new Date();\nconst hours = now.getHours();\nconst minutes = now.getMinutes();\n\n// 推送时间点前5分钟触发\nconst pushTimes = [\n  { hour: 8, min: 55 },\n  { hour: 12, min: 55 },\n  { hour: 19, min: 55 }\n];\n\nconst shouldPush = pushTimes.some(t => hours === t.hour && minutes >= t.min && minutes < t.min + 5);\n\nif (!shouldPush) {\n  return []; // 不是推送时间，返回空数组停止工作流\n}\n\n// 获取文章并分批\nconst articles = $input.first().json.articles || [];\nconst batchSize = 15; // 每批15篇\nconst batches = [];\n\nfor (let i = 0; i < articles.length; i += batchSize) {\n  batches.push(articles.slice(i, i + batchSize));\n}\n\nreturn batches.map((batch, index) => ({\n  json: {\n    batchIndex: index,\n    articles: batch,\n    totalBatches: batches.length,\n    pushTime: `${hours}:${minutes}`\n  }\n}));"
+      },
+      "id": "batch-processor",
+      "name": "Batch Processor",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [800, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 构建大模型筛选提示词\nconst batch = $input.first().json;\nconst articles = batch.articles;\n\n// 读取关键词配置\nconst categories = [\n  { name: \"AIGC\", keywords: [\"生成式AI\", \"AIGC\", \"内容生成\", \"文生图\", \"文生视频\", \"AI绘画\", \"AI写作\"] },\n  { name: \"AI初创\", keywords: [\"AI初创\", \"AI公司\", \"AI创业\", \"AI企业\", \"AI团队\", \"AI创业者\"] },\n  { name: \"AI融资\", keywords: [\"AI融资\", \"AI投资\", \"AI估值\", \"AI IPO\", \"AI并购\", \"AI融资额\", \"AI投资人\"] },\n  { name: \"大模型\", keywords: [\"大模型\", \"LLM\", \"GPT\", \"Claude\", \"Transformer\", \"BERT\", \"预训练模型\"] },\n  { name: \"AI产品\", keywords: [\"AI产品\", \"AI应用\", \"AI工具\", \"AI助手\", \"AI Agent\", \"智能体\", \"AI软件\"] }\n];\n\n// 构建文章列表文本\nconst articlesText = articles.map((a, i) => \n  `${i + 1}. 标题: ${a.title}\\n   摘要: ${a.summary}\\n   来源: ${a.source_name}`\n).join('\\n\\n');\n\nconst prompt = `你是一位专业的 AI 领域内容筛选助手。\n\n任务：判断以下文章是否与 AI 相关，并分类。\n\n筛选规则（语义匹配，非关键词精确匹配）：\n${categories.map(c => `- ${c.name}: ${c.description}（相关概念：${c.keywords.join('、')}）`).join('\\n')}\n\n待筛选文章：\n${articlesText}\n\n请输出 JSON 格式：\n{\\n  \"results\": [\\n    {\\n      \"index\": 1,\\n      \"title\": \"文章标题\",\\n      \"relevant\": true/false,\\n      \"categories\": [\"AI融资\", \"大模型\"],\\n      \"reason\": \"简要说明匹配原因\"\\n    }\\n  ]\\n}`;\n\nreturn [{\n  json: {\n    prompt: prompt,\n    articles: articles,\n    batchInfo: batch\n  }\n}];"
+      },
+      "id": "build-prompt",
+      "name": "Build AI Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1000, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://43.132.153.123/agent",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "prompt",
+              "value": "={{ $json.prompt }}"
+            },
+            {
+              "name": "model",
+              "value": "kimi-k2.5-ioa"
+            },
+            {
+              "name": "print",
+              "value": "true"
+            },
+            {
+              "name": "dangerouslySkipPermissions",
+              "value": "true"
+            }
+          ]
+        },
+        "options": {},
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer 06d56890c91f19135e6d8020e8448a35b31cb9b7cedd7da2842f0616ccadeac4"
+            }
+          ]
+        }
+      },
+      "id": "ai-filter",
+      "name": "AI Filter",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1200, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 解析 AI 响应并格式化推送内容\nconst aiResponse = $input.first().json;\nconst originalData = $input.first().json;\n\n// 尝试解析 AI 返回的 JSON\nlet filterResults = [];\ntry {\n  // 从 AI 响应中提取 JSON\n  const content = aiResponse.content || aiResponse.text || JSON.stringify(aiResponse);\n  const jsonMatch = content.match(/\\{[\\s\\S]*\\}/);\n  if (jsonMatch) {\n    const parsed = JSON.parse(jsonMatch[0]);\n    filterResults = parsed.results || [];\n  }\n} catch (e) {\n  console.log('Parse error:', e);\n}\n\n// 获取相关文章\nconst articles = originalData.articles || [];\nconst relevantArticles = filterResults.filter(r => r.relevant).map(r => {\n  const article = articles[r.index - 1];\n  return {\n    ...article,\n    categories: r.categories || [],\n    reason: r.reason || ''\n  };\n});\n\n// 如果没有相关文章，返回空\nif (relevantArticles.length === 0) {\n  return [];\n}\n\n// 格式化 Markdown 消息\nconst now = new Date();\nconst dateStr = now.toLocaleDateString('zh-CN');\nconst timeStr = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });\n\nlet markdown = `## 📰 AI 资讯精选 (${dateStr} ${timeStr})\\n\\n`;\nmarkdown += `本期筛选 **${articles.length}** 篇文章，命中 **${relevantArticles.length}** 篇\\n\\n---\\n\\n`;\n\nrelevantArticles.forEach((article, index) => {\n  markdown += `### ${index + 1}. ${article.title}\\n`;\n  markdown += `**分类**: ${article.categories.join(' | ')}\\n`;\n  markdown += `**公众号**: ${article.source_name}\\n`;\n  markdown += `**摘要**: ${article.summary.substring(0, 100)}...\\n`;\n  markdown += `[阅读原文](${article.link || '#'})\\n\\n---\\n\\n`;\n});\n\nmarkdown += `*Powered by n8n + 大模型筛选*`;\n\nreturn [{\n  json: {\n    msgtype: 'markdown',\n    markdown: {\n      content: markdown\n    }\n  }\n}];"
+      },
+      "id": "format-message",
+      "name": "Format Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1400, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=defd0b35-256b-40ba-a513-c21feb5955a5",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "msgtype",
+              "value": "={{ $json.msgtype }}"
+            },
+            {
+              "name": "markdown",
+              "value": "={{ JSON.stringify($json.markdown) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "wechat-push",
+      "name": "WeChat Work Push",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1600, 300]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Fetch RSS 创业邦",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch RSS 机器之心",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch RSS 创业邦": {
+      "main": [
+        [
+          {
+            "node": "Merge RSS Feeds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch RSS 机器之心": {
+      "main": [
+        [
+          {
+            "node": "Merge RSS Feeds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge RSS Feeds": {
+      "main": [
+        [
+          {
+            "node": "Batch Processor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Batch Processor": {
+      "main": [
+        [
+          {
+            "node": "Build AI Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build AI Prompt": {
+      "main": [
+        [
+          {
+            "node": "AI Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Filter": {
+      "main": [
+        [
+          {
+            "node": "Format Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Message": {
+      "main": [
+        [
+          {
+            "node": "WeChat Work Push",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": []
+}

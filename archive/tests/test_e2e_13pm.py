@@ -15,12 +15,12 @@ sys.path.insert(0, '/root/project-wb/n8n/src')
 
 # API4配置
 API4_BASE_URL = "http://www.jintiankansha.me/api3/query"
-API4_USER = "13167171761@163.com"
-API4_TOKEN = "IXhXzdNDnO"
+API4_USER = "your-email@example.com"
+API4_TOKEN = "YOUR_API4_TOKEN"
 
 # AI筛选配置
-AI_API_URL = "http://43.132.153.123/agent"
-AI_API_KEY = "06d56890c91f19135e6d8020e8448a35b31cb9b7cedd7da2842f0616ccadeac4"
+AI_API_URL = "http://your-llm-api-host/agent"
+AI_API_KEY = "YOUR_LLM_API_KEY"
 AI_MODEL = "kimi-k2.5-ioa"
 
 # 测试参数

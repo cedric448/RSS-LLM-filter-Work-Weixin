@@ -16,8 +16,8 @@
 **请求参数**:
 ```json
 {
-  "user": "13167171761@163.com",
-  "token": "IXhXzdNDnO",
+  "user": "your-email@example.com",
+  "token": "YOUR_API4_TOKEN",
   "slug": "ai-frontiers"    // 公众号slug
 }
 ```
@@ -64,7 +64,7 @@
 ### 1.2 大模型筛选 API
 
 #### 接口信息
-- **URL**: `http://43.132.153.123/agent`
+- **URL**: `http://your-llm-api-host/agent`
 - **认证方式**: Bearer Token
 - **模型**: kimi-k2.5-ioa
 - **用途**: AI 智能筛选文章
@@ -76,7 +76,7 @@
 **请求头**:
 ```http
 Content-Type: application/json
-Authorization: Bearer 06d56890c91f19135e6d8020e8448a35b31cb9b7cedd7da2842f0616ccadeac4
+Authorization: Bearer YOUR_LLM_API_KEY
 ```
 
 **请求体**:
@@ -158,7 +158,7 @@ Authorization: Bearer 06d56890c91f19135e6d8020e8448a35b31cb9b7cedd7da2842f0616cc
 
 #### 接口信息
 - **URL**: `https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key={KEY}`
-- **Webhook Key**: `defd0b35-256b-40ba-a513-c21feb5955a5`
+- **Webhook Key**: `YOUR_WECHAT_WEBHOOK_KEY`
 - **用途**: 推送消息到企业微信群聊
 
 #### 1.3.1 发送 Markdown 消息
@@ -464,17 +464,17 @@ def fetch_articles_via_api4(
 ```bash
 curl -X GET "http://www.jintiankansha.me/api3/query/get_topics_by_one_column" \
   -G \
-  --data-urlencode "user=13167171761@163.com" \
-  --data-urlencode "token=IXhXzdNDnO" \
+  --data-urlencode "user=your-email@example.com" \
+  --data-urlencode "token=YOUR_API4_TOKEN" \
   --data-urlencode "slug=ai-frontiers"
 ```
 
 ### 6.2 测试大模型 API
 
 ```bash
-curl -X POST "http://43.132.153.123/agent" \
+curl -X POST "http://your-llm-api-host/agent" \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer 06d56890c91f19135e6d8020e8448a35b31cb9b7cedd7da2842f0616ccadeac4" \
+  -H "Authorization: Bearer YOUR_LLM_API_KEY" \
   -d '{
     "model": "kimi-k2.5-ioa",
     "messages": [{
@@ -487,7 +487,7 @@ curl -X POST "http://43.132.153.123/agent" \
 ### 6.3 测试企业微信 Webhook
 
 ```bash
-curl -X POST "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=defd0b35-256b-40ba-a513-c21feb5955a5" \
+curl -X POST "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=YOUR_WECHAT_WEBHOOK_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "msgtype": "markdown",

@@ -4,13 +4,15 @@
 通过 Webhook 机器人推送消息到企业微信群
 支持自动分批、消息格式化、限流处理
 """
+import os
 import requests
 import time
 from datetime import datetime, timezone, timedelta
 from typing import List, Dict
 
 # 配置
-WECHAT_WEBHOOK = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=defd0b35-256b-40ba-a513-c21feb5955a5"
+WECHAT_WEBHOOK_KEY = os.environ.get('WECHAT_WEBHOOK_KEY', 'your-webhook-key-here')
+WECHAT_WEBHOOK = f"https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key={WECHAT_WEBHOOK_KEY}"
 MAX_ARTICLES_PER_BATCH = 20  # 单批最大推送文章数(超过自动分批)
 BATCH_INTERVAL = 2  # 批次间延迟(秒)
 REQUEST_TIMEOUT = 10  # 请求超时(秒)

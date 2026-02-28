@@ -300,7 +300,7 @@ touch /root/project-wb/n8n/logs/auto_push.log
 
 **方式一: 使用管理后台**（推荐）
 1. 访问 `https://172.19.48.4:8443`
-2. 登录（授权码: `eID6g1ka71A-p7UVNgwpBRnIIjXiOvPp`）
+2. 登录（授权码: `change-this-password-in-production`）
 3. 添加/删除/修改 RSS 源
 4. 保存后自动生效
 
@@ -332,7 +332,7 @@ cd /root/project-wb/n8n && python3 src/auto_push.py
 修改 `/root/project-wb/n8n/src/llm_filter.py` 中的 API 配置:
 ```python
 # LLM API 配置
-API_URL = "http://43.132.153.123/agent"
+API_URL = "http://your-llm-api-host/agent"
 API_KEY = "your-api-key"
 MODEL_NAME = "kimi-k2.5-ioa"
 ```

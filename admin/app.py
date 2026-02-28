@@ -15,14 +15,14 @@ from typing import List, Dict
 load_dotenv()
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'rss-admin-secret-key-2026')
+app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY', 'change-this-secret-key-in-production')
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)  # Session 有效期 24 小时
 
 # 配置文件路径
 CONFIG_FILE = os.path.join(os.path.dirname(__file__), '..', 'config', 'rss-sources.json')
 
 # 鉴权配置
-AUTH_CODE = os.environ.get('RSS_ADMIN_AUTH_CODE', 'eID6g1ka71A-p7UVNgwpBRnIIjXiOvPp')
+AUTH_CODE = os.environ.get('RSS_ADMIN_AUTH_CODE', 'change-this-password-in-production')
 
 
 def require_auth(f):

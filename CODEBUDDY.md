@@ -51,7 +51,7 @@ docker compose down
 
 ```bash
 # API Key (存储在环境变量中)
-N8N_API_KEY="n8n_api_77e85106b2f5dea8d104fb2176a4f0fd7f214eb0beff33a40bfc3c8a54ec3b8e481a2cccacfec12e"
+N8N_API_KEY="YOUR_N8N_API_KEY"
 
 # 列出所有工作流
 curl -s "http://localhost:5678/api/v1/workflows" \
@@ -94,7 +94,7 @@ cat config/keywords.json
 重要环境变量:
 - `N8N_SECURE_COOKIE=false` - 允许非 HTTPS 访问
 - `N8N_BASIC_AUTH_USER=admin`
-- `N8N_BASIC_AUTH_PASSWORD=n8n_password_2026`
+- `N8N_BASIC_AUTH_PASSWORD=YOUR_N8N_PASSWORD`
 
 ### 工作流文件
 
@@ -105,11 +105,11 @@ cat config/keywords.json
 2. **Fetch RSS Articles**: GET http://localhost:5001/api/articles
 3. **Batch Processor**: 检查推送时间 (8:55, 12:55, 19:55)，每批15篇
 4. **Build AI Prompt**: 构建大模型筛选提示词
-5. **AI Filter**: POST http://43.132.153.123/agent
+5. **AI Filter**: POST http://your-llm-api-host/agent
    - Model: kimi-k2.5-ioa
-   - Authorization: Bearer 06d56890c91f19135e6d8020e8448a35b31cb9b7cedd7da2842f0616ccadeac4
+   - Authorization: Bearer YOUR_LLM_API_KEY
 6. **Format Message**: 解析 AI 响应，格式化 Markdown 消息
-7. **WeChat Work Push**: POST https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=defd0b35-256b-40ba-a513-c21feb5955a5
+7. **WeChat Work Push**: POST https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=YOUR_WECHAT_WEBHOOK_KEY
 
 ### 筛选规则配置
 
@@ -170,7 +170,7 @@ lsof -ti:5001 | xargs kill -9
 
 检查:
 1. API Key 是否正确
-2. 网络连接到 http://43.132.153.123
+2. 网络连接到 http://your-llm-api-host
 3. 请求体格式是否符合要求
 
 ## 数据流说明

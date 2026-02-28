@@ -21,7 +21,7 @@
 ### 登录信息
 
 ```
-授权码: eID6g1ka71A-p7UVNgwpBRnIIjXiOvPp
+授权码: change-this-password-in-production
 会话有效期: 24 小时
 ```
 
@@ -382,7 +382,7 @@ bash /tmp/test_https_final.sh
 # 单独测试登录
 curl -k -X POST https://172.19.48.4:8443/login \
   -H "Content-Type: application/json" \
-  -d '{"auth_code":"eID6g1ka71A-p7UVNgwpBRnIIjXiOvPp"}'
+  -d '{"auth_code":"change-this-password-in-production"}'
 ```
 
 ---
@@ -422,7 +422,7 @@ https://172.19.48.4:8443
 
 **登录授权码**:
 ```
-eID6g1ka71A-p7UVNgwpBRnIIjXiOvPp
+change-this-password-in-production
 ```
 
 ---

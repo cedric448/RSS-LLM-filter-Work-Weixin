@@ -16,14 +16,14 @@ curl -v RSS链接
 API接口二: 获取 专栏 的RSS链接
 URL	请求方法	请求参数	请求参数&结果示例	其它说明
 http://www.jintiankansha.me/api3/query/column/rss	HTTP GET/POST	
-user: 你的邮箱。你的邮件为13167171761@163.com
-token: API访问密钥参数, 请勿告诉他人。你的密钥为 IXhXzdNDnO
+user: 你的邮箱。你的邮件为your-email@example.com
+token: API访问密钥参数, 请勿告诉他人。你的密钥为 YOUR_API4_TOKEN
 slug: 专栏的标识，下同。譬如 http://www.jintiankansha.me/column/nGqairAU3Z 中的 nGqairAU3Z
 请看下面的示例	
 获取rss_link后，请使用Python/Java/Go等RSS客户端解析器解析即可
 需要vip>=vip1
 CURL 示例:
-curl -v 'http://www.jintiankansha.me/api3/query/column/rss?token=IXhXzdNDnO&user=13167171761@163.com&slug='
+curl -v 'http://www.jintiankansha.me/api3/query/column/rss?token=YOUR_API4_TOKEN&user=your-email@example.com&slug='
 成功返回的结果示例:
 {
     "status": "success",
@@ -45,8 +45,8 @@ curl -v 'http://www.jintiankansha.me/api3/query/column/rss?token=IXhXzdNDnO&user
 API接口三: 获取 我的所有订阅专栏的列表
 URL	请求方法	请求参数	结果	请求参数&结果示例	其它说明
 http://www.jintiankansha.me/api3/query/my_columns	HTTP GET/POST	
-user: 你的邮箱。你的邮件为13167171761@163.com
-token: API访问密钥参数, 请勿告诉他人。你的密钥为 IXhXzdNDnO
+user: 你的邮箱。你的邮件为your-email@example.com
+token: API访问密钥参数, 请勿告诉他人。你的密钥为 YOUR_API4_TOKEN
 page: 页数。默认为1
 source:类型
 desc: 介绍
@@ -56,7 +56,7 @@ slug: 专栏的标识
 返回结果中的slug便是该专栏的标识
 需要vip>=vip1
 CURL 示例:
-curl -v 'http://www.jintiankansha.me/api3/query/my_columns?page=1&token=IXhXzdNDnO&user=13167171761@163.com'
+curl -v 'http://www.jintiankansha.me/api3/query/my_columns?page=1&token=YOUR_API4_TOKEN&user=your-email@example.com'
 成功返回的结果示例:
 {
     "status": "success",
@@ -84,8 +84,8 @@ curl -v 'http://www.jintiankansha.me/api3/query/my_columns?page=1&token=IXhXzdND
 API接口四: 获取 专栏 的原始文章链接列表（返回最近的文章）
 URL	请求方法	请求参数	请求参数&结果示例	其它说明
 http://www.jintiankansha.me/api3/query/get_topics_by_one_column	HTTP GET/POST	
-user: 你的邮箱。你的邮件为13167171761@163.com
-token: API访问密钥参数, 请勿告诉他人。你的密钥为 IXhXzdNDnO
+user: 你的邮箱。你的邮件为your-email@example.com
+token: API访问密钥参数, 请勿告诉他人。你的密钥为 YOUR_API4_TOKEN
 slug: 专栏的标识。譬如 http://www.jintiankansha.me/column/nGqairAU3Z 中的 nGqairAU3Z
 image: 文章封面
 author: 专栏名称
@@ -97,7 +97,7 @@ is_first: 是否是首篇
 每天调用次数=每天RSS额度次数
 需要vip>=vip1
 CURL 示例:
-curl -v 'http://www.jintiankansha.me/api3/query/get_topics_by_one_column?token=IXhXzdNDnO&user=13167171761@163.com&slug='
+curl -v 'http://www.jintiankansha.me/api3/query/get_topics_by_one_column?token=YOUR_API4_TOKEN&user=your-email@example.com&slug='
 成功返回的结果示例:
 {
     "status":"success",

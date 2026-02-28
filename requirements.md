@@ -51,9 +51,9 @@ https://rsshub.app/jintiankansha/{公众号ID}
 
 ### 3.1 API 配置
 ```bash
-curl -X POST http://43.132.153.123/agent \
+curl -X POST http://your-llm-api-host/agent \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer 06d56890c91f19135e6d8020e8448a35b31cb9b7cedd7da2842f0616ccadeac4" \
+  -H "Authorization: Bearer YOUR_LLM_API_KEY" \
   -d '{
     "prompt": "{筛选提示词}",
     "print": true,
@@ -131,7 +131,7 @@ curl -X POST http://43.132.153.123/agent \
 ## 4. 推送层
 
 ### 4.1 企业微信机器人配置
-- **Webhook URL**: `https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=defd0b35-256b-40ba-a513-c21feb5955a5`
+- **Webhook URL**: `https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=YOUR_WECHAT_WEBHOOK_KEY`
 - **消息格式**: Markdown
 
 ### 4.2 推送内容格式
@@ -252,10 +252,10 @@ n8n/
   "type": "n8n-nodes-base.httpRequest",
   "parameters": {
     "method": "POST",
-    "url": "http://43.132.153.123/agent",
+    "url": "http://your-llm-api-host/agent",
     "headers": {
       "Content-Type": "application/json",
-      "Authorization": "Bearer 06d56890c91f19135e6d8020e8448a35b31cb9b7cedd7da2842f0616ccadeac4"
+      "Authorization": "Bearer YOUR_LLM_API_KEY"
     },
     "body": {
       "prompt": "={{ $json.prompt }}",
@@ -274,7 +274,7 @@ n8n/
   "type": "n8n-nodes-base.httpRequest",
   "parameters": {
     "method": "POST",
-    "url": "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=defd0b35-256b-40ba-a513-c21feb5955a5",
+    "url": "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=YOUR_WECHAT_WEBHOOK_KEY",
     "headers": {
       "Content-Type": "application/json"
     },

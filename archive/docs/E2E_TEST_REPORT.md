@@ -218,7 +218,7 @@ Webhook URL: https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=defd0b35-...
 #### 登录测试
 ```
 ✅ 登录成功
-   授权码: eID6g1ka71A-p7UVNgwpBRnIIjXiOvPp
+   授权码: change-this-password-in-production
    Session: 有效
    过期时间: 24 小时
 ```

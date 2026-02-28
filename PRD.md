@@ -115,9 +115,9 @@ rss_sources:
 
 #### 2.3.1 API配置
 ```bash
-curl -X POST http://43.132.153.123/agent \
+curl -X POST http://your-llm-api-host/agent \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer 06d56890c91f19135e6d8020e8448a35b31cb9b7cedd7da2842f0616ccadeac4" \
+  -H "Authorization: Bearer YOUR_LLM_API_KEY" \
   -d '{
     "prompt": "[筛选提示词]",
     "print": true,
@@ -191,7 +191,7 @@ curl -X POST http://43.132.153.123/agent \
 
 #### 2.4.1 Webhook配置
 ```
-POST https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=defd0b35-256b-40ba-a513-c21feb5955a5
+POST https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=YOUR_WECHAT_WEBHOOK_KEY
 ```
 
 #### 2.4.2 消息格式（Markdown）
@@ -308,12 +308,12 @@ POSTGRES_PASSWORD=n8n_password
 POSTGRES_DB=n8n
 
 # 大模型API
-LLM_API_URL=http://43.132.153.123/agent
-LLM_API_KEY=06d56890c91f19135e6d8020e8448a35b31cb9b7cedd7da2842f0616ccadeac4
+LLM_API_URL=http://your-llm-api-host/agent
+LLM_API_KEY=YOUR_LLM_API_KEY
 LLM_MODEL=kimi-k2.5-ioa
 
 # 企业微信
-WECHAT_WEBHOOK_KEY=defd0b35-256b-40ba-a513-c21feb5955a5
+WECHAT_WEBHOOK_KEY=YOUR_WECHAT_WEBHOOK_KEY
 ```
 
 ---

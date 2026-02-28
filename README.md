@@ -117,7 +117,7 @@ cat /root/project-wb/n8n/config/rss-sources.json | jq '.sources[] | {name, enabl
 **方式1: Web管理后台**（推荐）
 ```
 访问: https://<服务器IP>:8443
-授权码: eID6g1ka71A-p7UVNgwpBRnIIjXiOvPp
+授权码: change-this-password-in-production
 ```
 
 **方式2: 编辑配置文件**
@@ -232,16 +232,16 @@ grep "ERROR\|失败" /root/project-wb/n8n/logs/auto_push.log | tail -20
 
 ### API密钥
 
-- **AI模型API**: `http://43.132.153.123/agent`
+- **AI模型API**: `http://your-llm-api-host/agent`
 - **企业微信Webhook**: `https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=defd0b35...`
-- **今天看啥账号**: `13167171761@163.com`
+- **今天看啥账号**: `your-email@example.com`
 
 ⚠️ 密钥信息请妥善保管，不要泄露
 
 ### Web管理后台
 
 - **地址**: `https://<服务器IP>:8443`
-- **授权码**: `eID6g1ka71A-p7UVNgwpBRnIIjXiOvPp`
+- **授权码**: `change-this-password-in-production`
 
 ---
 

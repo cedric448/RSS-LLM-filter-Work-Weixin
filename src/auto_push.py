@@ -6,6 +6,7 @@ RSS 智能筛选自动推送脚本
 """
 
 import sys
+import os
 import json
 import requests
 import hashlib
@@ -36,8 +37,8 @@ REQUEST_INTERVAL = 1.0  # 请求间隔(秒) 避免限流
 # API4配置
 USE_API4 = True  # 使用API接口四(True)或RSS方式(False)
 API4_BASE_URL = "http://www.jintiankansha.me/api3/query"
-API4_USER = "13167171761@163.com"
-API4_TOKEN = "IXhXzdNDnO"
+API4_USER = os.environ.get('API4_USER', 'your-email@example.com')
+API4_TOKEN = os.environ.get('API4_TOKEN', 'your-api-token-here')
 
 # 初始化数据库
 def init_database():

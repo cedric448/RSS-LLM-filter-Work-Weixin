@@ -71,7 +71,7 @@ services:
 # 使用 OpenSSL（推荐）
 openssl rand -base64 32
 
-# 输出示例: eID6g1ka71A-p7UVNgwpBRnIIjXiOvPp
+# 输出示例: change-this-password-in-production
 
 # 使用 Python
 python3 -c "import secrets; print(secrets.token_urlsafe(32))"
@@ -91,7 +91,7 @@ pwgen -s 32 1
 
 ### 高风险场景
 
-⚠️ **默认密码**: 使用默认授权码 `eID6g1ka71A-p7UVNgwpBRnIIjXiOvPp`  
+⚠️ **默认密码**: 使用默认授权码 `change-this-password-in-production`  
 ⚠️ **公网暴露**: 将服务直接暴露到公网而不修改密码  
 ⚠️ **密码泄露**: 将 `.env` 文件提交到公开代码仓库  
 ⚠️ **弱密码**: 使用过短或过于简单的密码  

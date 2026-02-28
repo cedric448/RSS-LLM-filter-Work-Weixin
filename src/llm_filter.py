@@ -4,6 +4,7 @@ LLM 内容筛选模块
 使用大模型进行语义理解,判断文章是否与 AI 主题相关
 支持批量处理、重试机制、动态配置
 """
+import os
 import requests
 import json
 import time
@@ -15,8 +16,8 @@ from typing import List, Dict, Tuple
 KEYWORDS_CONFIG = "/root/project-wb/n8n/config/keywords.json"
 
 # API 配置
-LLM_API_URL = "http://119.28.50.67/agent"
-LLM_API_KEY = "Bearer 06d56890c91f19135e6d8020e8448a35b31cb9b7cedd7da2842f0616ccadeac4"
+LLM_API_URL = os.environ.get('LLM_API_URL', 'http://your-llm-api-endpoint')
+LLM_API_KEY = os.environ.get('LLM_API_KEY', 'Bearer your-llm-api-key-here')
 API_TIMEOUT = 120
 MAX_RETRIES = 3
 RETRY_DELAY = 2

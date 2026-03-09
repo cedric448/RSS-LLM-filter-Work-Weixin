@@ -268,6 +268,6 @@ pip3 install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 ## 相关文档
 
-- 主推送系统: `/root/project-wb/n8n/src/main.py`
+- 主推送系统: `/root/project-wb/n8n/src/auto_push.py`
 - 配置文件: `/root/project-wb/n8n/config/rss-sources.json`
 - 今天看点啥: https://www.jintiankansha.me/

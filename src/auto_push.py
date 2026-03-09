@@ -13,7 +13,6 @@ import hashlib
 import sqlite3
 import time
 from datetime import datetime, timedelta
-from xml.etree import ElementTree as ET
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -28,14 +27,12 @@ RSS_SOURCES_CONFIG = "/root/project-wb/n8n/config/rss-sources.json"
 PUSH_HISTORY_DB = "/root/project-wb/n8n/data/push_history.db"
 MAX_ARTICLES_PER_SOURCE = 20  # 每个源最多获取20篇
 HISTORY_RETENTION_DAYS = 30  # 保留30天的推送历史
-RSS_FETCH_TIMEOUT = 15  # RSS获取超时时间(秒)
-MAX_CONCURRENT_RSS = 3  # 最大并发RSS获取数 (参考文档建议3)
+MAX_CONCURRENT_RSS = 3  # 最大并发获取数 (参考文档建议3)
 RSS_MAX_RETRIES = 3  # RSS获取失败重试次数 (参考文档建议3)
 RSS_RETRY_DELAY = 3  # 重试间隔(秒,指数退避)
 REQUEST_INTERVAL = 1.0  # 请求间隔(秒) 避免限流
 
-# API4配置
-USE_API4 = True  # 使用API接口四(True)或RSS方式(False)
+# 今天看啥 API 配置
 API4_BASE_URL = "http://www.jintiankansha.me/api3/query"
 API4_USER = os.environ.get('API4_USER', 'your-email@example.com')
 API4_TOKEN = os.environ.get('API4_TOKEN', 'your-api-token-here')
@@ -195,61 +192,6 @@ def get_rss_sources():
         print(f"✗ 读取 RSS 源配置失败: {e}")
         return []
 
-def fetch_rss_articles(url, source_name, retry_count=0):
-    """获取单个 RSS 源的文章(支持重试)"""
-    try:
-        response = requests.get(url, timeout=RSS_FETCH_TIMEOUT)
-        
-        # 检查503错误 - 服务端限流，等待后重试
-        if response.status_code == 503:
-            if retry_count < RSS_MAX_RETRIES:
-                delay = 5  # 503错误固定等待5秒
-                print(f"  ⏳ {source_name}: 限流(503)，{delay}秒后重试 ({retry_count + 1}/{RSS_MAX_RETRIES})")
-                time.sleep(delay)
-                return fetch_rss_articles(url, source_name, retry_count + 1)
-            else:
-                print(f"  ✗ {source_name}: 限流(503)，重试{RSS_MAX_RETRIES}次后仍失败")
-                return []
-        
-        response.raise_for_status()
-        
-        root = ET.fromstring(response.content)
-        articles = []
-        
-        for item in root.findall('.//item')[:MAX_ARTICLES_PER_SOURCE]:
-            title_elem = item.find('title')
-            link_elem = item.find('link')
-            desc_elem = item.find('description')
-            
-            if title_elem is not None and title_elem.text:
-                articles.append({
-                    'title': title_elem.text.strip(),
-                    'link': link_elem.text.strip() if link_elem is not None and link_elem.text else '',
-                    'summary': (desc_elem.text or '')[:500] if desc_elem is not None else '',
-                    'source_name': source_name
-                })
-        
-        # 成功获取
-        retry_suffix = f" (重试{retry_count}次后成功)" if retry_count > 0 else ""
-        print(f"  ✓ {source_name}: {len(articles)} 篇文章{retry_suffix}")
-        return articles
-        
-    except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
-        # 可重试的错误
-        if retry_count < RSS_MAX_RETRIES:
-            # 指数退避: 3秒, 6秒
-            delay = RSS_RETRY_DELAY * (2 ** retry_count)
-            print(f"  ⏳ {source_name}: {'超时' if isinstance(e, requests.exceptions.Timeout) else '连接失败'}, {delay}秒后重试 ({retry_count + 1}/{RSS_MAX_RETRIES})")
-            time.sleep(delay)
-            return fetch_rss_articles(url, source_name, retry_count + 1)
-        else:
-            print(f"  ✗ {source_name}: 重试{RSS_MAX_RETRIES}次后仍失败")
-            return []
-    except Exception as e:
-        # 其他错误不重试
-        print(f"  ✗ {source_name}: 获取失败 - {str(e)[:100]}")
-        return []
-
 def fetch_articles_via_api4(slug, source_name, retry_count=0):
     """通过API接口四获取文章(支持重试)"""
     try:
@@ -326,22 +268,16 @@ def fetch_rss_articles_concurrent(sources):
         print(f"  ℹ️ 源较多({len(sources)}个),自动降低并发数至 {actual_concurrent}")
     
     with ThreadPoolExecutor(max_workers=actual_concurrent) as executor:
-        # 提交所有任务 - 根据USE_API4选择方法
-        if USE_API4:
-            future_to_source = {
-                executor.submit(
-                    fetch_articles_via_api4, 
-                    source.get('slug', ''), 
-                    source['name']
-                ): source 
-                for source in sources
-                if source.get('slug')  # 只处理有slug的源
-            }
-        else:
-            future_to_source = {
-                executor.submit(fetch_rss_articles, source['url'], source['name']): source 
-                for source in sources
-            }
+        # 提交所有任务
+        future_to_source = {
+            executor.submit(
+                fetch_articles_via_api4, 
+                source.get('slug', ''), 
+                source['name']
+            ): source 
+            for source in sources
+            if source.get('slug')  # 只处理有slug的源
+        }
         
         # 等待完成
         for i, future in enumerate(as_completed(future_to_source)):
@@ -385,7 +321,7 @@ def main():
     print("=" * 60)
     print(f"🚀 RSS 智能筛选自动推送")
     print(f"   开始时间: {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
-    print(f"   获取方式: {'API接口四 (JSON)' if USE_API4 else 'RSS方式 (XML)'}")
+    print(f"   获取方式: API接口四 (JSON)")
     print("=" * 60)
     
     # 初始化数据库

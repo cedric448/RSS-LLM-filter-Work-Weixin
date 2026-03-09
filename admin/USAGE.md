@@ -230,7 +230,7 @@ app.run(host='0.0.0.0', port=5003, debug=True)  # 改为其他端口
 
 - 项目仓库: `/root/project-wb/n8n/`
 - 配置文件: `/root/project-wb/n8n/config/rss-sources.json`
-- 主推送系统: `/root/project-wb/n8n/src/main.py`
+- 主推送系统: `/root/project-wb/n8n/src/auto_push.py`
 - 后台代码: `/root/project-wb/n8n/admin/app.py`
 
 如有问题，请查看:

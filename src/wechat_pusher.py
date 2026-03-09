@@ -146,7 +146,7 @@ def format_articles_message(articles: List[Dict], batch_num: int = 1, total_batc
         else:
             markdown_content += f"{i}. [{source}] {title_text}{category_tag}\n"
     
-    markdown_content += "*Powered by n8n + AI 筛选*"
+    markdown_content += "*Powered by AI 智能筛选*"
     
     return markdown_content
 

@@ -40,26 +40,6 @@ export WECHAT_WEBHOOK_KEY="your-webhook-key-here"
 
 ### 4. Flask 管理后台配置
 
-```bash
-# Flask Secret Key (用于 session 加密)
-# 生成方法: python3 -c "import secrets; print(secrets.token_urlsafe(32))"
-export FLASK_SECRET_KEY="your-flask-secret-key-here"
-
-# 管理后台登录密码
-export RSS_ADMIN_AUTH_CODE="your-admin-password-here"
-```
-
-### 5. n8n 配置 (可选)
-
-如果使用 n8n 工作流模式:
-
-```bash
-export N8N_API_KEY="your-n8n-api-key-here"
-export N8N_BASIC_AUTH_USER="admin"
-export N8N_BASIC_AUTH_PASSWORD="your-n8n-password-here"
-```
-
-## 配置方法
 
 ### 方式 1: 使用 .env 文件 (推荐)
 
@@ -100,21 +80,6 @@ EOF
 
 # 重新加载配置
 source ~/.bashrc
-```
-
-### 方式 3: Docker Compose
-
-在 `docker-compose.yml` 中配置环境变量:
-
-```yaml
-services:
-  app:
-    environment:
-      - API4_USER=${API4_USER}
-      - API4_TOKEN=${API4_TOKEN}
-      - LLM_API_URL=${LLM_API_URL}
-      - LLM_API_KEY=${LLM_API_KEY}
-      - WECHAT_WEBHOOK_KEY=${WECHAT_WEBHOOK_KEY}
 ```
 
 ## 验证配置

@@ -4,116 +4,95 @@ This file provides guidance to CodeBuddy Code when working with code in this rep
 
 ## 项目概述
 
-RSS 智能筛选推送系统 - 使用 n8n 工作流 + 大模型进行内容筛选，将符合 AI 主题的公众号文章推送到企业微信。
+RSS 智能筛选推送系统 - 使用 Python + Cron + 大模型进行内容筛选，将符合 AI 主题的公众号文章推送到企业微信。
 
-**技术栈**: n8n (workflow automation), Docker, Python (Mock RSS Server), PostgreSQL
+**技术栈**: Python 3, Cron, LLM API, SQLite, Flask (管理后台)
 
 ## 项目架构
 
 ```
-今天看啥 RSS (<200 公众号) 
-    ↓ RSS Feed
-n8n 工作流
-    ├─ Schedule Trigger (每小时检查)
-    ├─ Fetch RSS Articles (HTTP Request)
-    ├─ Batch Processor (10-20篇/批)
-    ├─ Build AI Prompt (构建提示词)
-    ├─ AI Filter (调用大模型筛选)
-    ├─ Format Message (格式化 Markdown)
-    └─ WeChat Work Push (企业微信推送)
-    
-定时推送: 9:00, 13:00, 20:00
+今天看啥 API (<200 公众号) 
+    ↓ API4 JSON 接口
+Python 自动推送 (src/auto_push.py)
+    ├─ Cron 定时触发 (9:00, 13:00, 20:00)
+    ├─ API4 获取文章 (并发, 重试, 限流控制)
+    ├─ 去重过滤 (SQLite 历史记录)
+    ├─ AI 智能筛选 (LLM 批量处理, 15篇/批)
+    ├─ 格式化消息 (Markdown)
+    └─ 企业微信推送 (Webhook)
 ```
 
 ## 开发与部署命令
 
-### Docker 容器管理
+### 手动执行推送
 
 ```bash
-# 启动所有服务
-docker compose up -d
+# 加载环境变量并执行
+/root/project-wb/n8n/run_auto_push.sh
 
-# 查看服务状态
-docker compose ps
-
-# 查看日志
-docker compose logs n8n
-docker compose logs mock-rss-server
-
-# 重启 n8n (应用配置更改后)
-docker compose restart n8n
-
-# 停止所有服务
-docker compose down
+# 或手动执行
+cd /root/project-wb/n8n
+source .env
+python3 src/auto_push.py
 ```
 
-### n8n API 操作
+### Cron 定时任务管理
 
 ```bash
-# API Key (存储在环境变量中)
-N8N_API_KEY="YOUR_N8N_API_KEY"
+# 查看定时任务
+crontab -l | grep auto_push
 
-# 列出所有工作流
-curl -s "http://localhost:5678/api/v1/workflows" \
-  -H "X-N8N-API-KEY: $N8N_API_KEY"
+# 编辑定时任务
+crontab -e
 
-# 获取工作流详情
-curl -s "http://localhost:5678/api/v1/workflows/{workflow_id}" \
-  -H "X-N8N-API-KEY: $N8N_API_KEY"
-
-# 激活/停用工作流
-curl -X PATCH "http://localhost:5678/api/v1/workflows/{workflow_id}" \
-  -H "X-N8N-API-KEY: $N8N_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"active": true}'
-
-# 手动执行工作流
-curl -X POST "http://localhost:5678/api/v1/workflows/{workflow_id}/execute" \
-  -H "X-N8N-API-KEY: $N8N_API_KEY"
+# 当前配置: 每天 9:05, 13:05, 20:05
+# 5 9,13,20 * * * /root/project-wb/n8n/run_auto_push.sh >> /root/project-wb/n8n/logs/auto_push.log 2>&1
 ```
 
-### Mock RSS Server
+### 查看日志
 
 ```bash
-# 测试 RSS API
-curl http://localhost:5001/api/articles
+# 查看最近推送日志
+tail -100 /root/project-wb/n8n/logs/auto_push.log
 
-# 查看配置
-cat config/rss-sources.json
-cat config/keywords.json
+# 实时查看
+tail -f /root/project-wb/n8n/logs/auto_push.log
+
+# 查看今日推送结果
+grep "$(date +%Y-%m-%d)" /root/project-wb/n8n/logs/auto_push.log | grep "推送完成" -A 5
+```
+
+### 管理后台
+
+```bash
+# 管理后台运行在 systemd 服务
+systemctl status rss-admin
+
+# 访问地址: https://<服务器IP>:8443
 ```
 
 ## 核心配置文件
 
-### docker-compose.yml
+### .env - 环境变量
 
-- **n8n 服务**: 端口 5678, 使用 n8nio/n8n:1.48.0
-- **mock-rss-server**: 端口 5001 (映射到容器内 5000)
-- **postgres**: 端口 5432, 数据库存储
+```bash
+API4_USER=xxx          # 今天看啥 API 账号
+API4_TOKEN=xxx         # 今天看啥 API Token
+LLM_API_URL=xxx        # 大模型 API 地址
+LLM_API_KEY=xxx        # 大模型 API Key
+WECHAT_WEBHOOK_KEY=xxx # 企业微信 Webhook Key
+```
 
-重要环境变量:
-- `N8N_SECURE_COOKIE=false` - 允许非 HTTPS 访问
-- `N8N_BASIC_AUTH_USER=admin`
-- `N8N_BASIC_AUTH_PASSWORD=YOUR_N8N_PASSWORD`
+### config/rss-sources.json - RSS 源配置
 
-### 工作流文件
+每个源包含:
+- `name`: 公众号名称
+- `slug`: 今天看啥 API4 的源标识 (必需)
+- `enabled`: 是否启用
 
-`n8n-workflows/rss-ai-filter-workflow.json` - 主工作流定义
+### config/keywords.json - 筛选规则
 
-关键节点:
-1. **Schedule Trigger**: 每小时触发 (cron: 0 * * * *)
-2. **Fetch RSS Articles**: GET http://localhost:5001/api/articles
-3. **Batch Processor**: 检查推送时间 (8:55, 12:55, 19:55)，每批15篇
-4. **Build AI Prompt**: 构建大模型筛选提示词
-5. **AI Filter**: POST http://your-llm-api-host/agent
-   - Model: kimi-k2.5-ioa
-   - Authorization: Bearer YOUR_LLM_API_KEY
-6. **Format Message**: 解析 AI 响应，格式化 Markdown 消息
-7. **WeChat Work Push**: POST https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=YOUR_WECHAT_WEBHOOK_KEY
-
-### 筛选规则配置
-
-`config/keywords.json` - 定义文章分类和关键词:
+定义文章分类和关键词:
 - AIGC: 生成式AI、内容生成、文生图、文生视频
 - AI初创: AI公司、AI创业、AI企业
 - AI融资: AI投资、AI估值、AI IPO
@@ -122,88 +101,68 @@ cat config/keywords.json
 
 **重要**: 使用语义匹配而非关键词精确匹配
 
-## 工作流导入
+## 核心代码文件
 
-```bash
-# 清理工作流 JSON (移除只读字段)
-python3 -c "
-import json
-with open('n8n-workflows/rss-ai-filter-workflow.json', 'r') as f:
-    data = json.load(f)
-for key in ['tags', 'id', 'createdAt', 'updatedAt', 'versionId', 'meta', 'pinData', 'staticData']:
-    data.pop(key, None)
-with open('/tmp/workflow_clean.json', 'w') as f:
-    json.dump(data, f)
-"
-
-# 导入工作流
-curl -X POST "http://localhost:5678/api/v1/workflows" \
-  -H "X-N8N-API-KEY: $N8N_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d @/tmp/workflow_clean.json
-```
+| 文件 | 说明 |
+|------|------|
+| `src/auto_push.py` | 自动推送主脚本 (唯一入口) |
+| `src/llm_filter.py` | AI 筛选模块 |
+| `src/wechat_pusher.py` | 企业微信推送模块 |
+| `run_auto_push.sh` | 启动脚本 (加载 .env + 执行 Python) |
+| `admin/app.py` | Flask 管理后台 |
 
 ## 故障排查
-
-### n8n 容器启动失败
-
-检查环境变量配置，特别是 `N8N_SECURE_COOKIE=false`
-
-### mock-rss-server 重启循环
-
-可能是权限问题或端口冲突:
-```bash
-# 查看日志
-docker compose logs mock-rss-server --tail 50
-
-# 释放端口
-lsof -ti:5001 | xargs kill -9
-```
-
-### 工作流推送时间不生效
-
-检查 Batch Processor 节点的时间判断逻辑:
-- 推送时间前5分钟触发 (8:55, 12:55, 19:55)
-- 容器时区设置: `GENERIC_TIMEZONE=Asia/Shanghai`
 
 ### 大模型 API 调用失败
 
 检查:
-1. API Key 是否正确
-2. 网络连接到 http://your-llm-api-host
+1. API Key 是否正确 (`.env` 中的 `LLM_API_KEY`)
+2. 网络连接是否正常
 3. 请求体格式是否符合要求
+
+### API4 获取文章失败 ("参数不对")
+
+检查:
+1. 环境变量 `API4_USER` 和 `API4_TOKEN` 是否正确加载
+2. Cron 任务是否通过 `run_auto_push.sh` 执行 (确保 `.env` 被加载)
+3. 详见 [CRON_SETUP.md](CRON_SETUP.md) 排查
+
+### 企业微信推送失败
+
+检查:
+1. `WECHAT_WEBHOOK_KEY` 是否有效
+2. 是否超过频率限制 (20条/秒)
+3. 消息格式是否正确
 
 ## 数据流说明
 
-1. **RSS 获取**: 从 mock-rss-server 获取文章列表 (生产环境替换为真实 RSS 源)
-2. **时间过滤**: 只在推送时间点前5分钟内处理文章
-3. **批量处理**: 每批15篇文章，避免 API 超时
-4. **AI 筛选**: 大模型判断文章与 AI 主题相关性，返回 JSON 格式结果
-5. **结果解析**: 提取相关文章，生成分类标签和推荐理由
-6. **消息格式化**: 使用 Markdown 格式，包含标题、分类、摘要、链接
-7. **企业微信推送**: Webhook 方式发送到群聊
+1. **文章获取**: 通过今天看啥 API4 接口获取公众号文章 (JSON 格式)
+2. **去重过滤**: 基于 SQLite 数据库,过滤已推送的文章 (保留30天历史)
+3. **批量处理**: 每批15篇文章,避免 LLM API 超时
+4. **AI 筛选**: 大模型判断文章与 AI 主题相关性,返回 JSON 格式结果
+5. **结果解析**: 提取相关文章,生成分类标签和置信度
+6. **消息格式化**: 使用 Markdown 格式,包含标题、分类、链接
+7. **企业微信推送**: Webhook 方式发送到群聊,分批推送 (每批最多20篇)
 
 ## 重要注意事项
 
 1. **API Key 安全**: 
-   - n8n API Key: 通过环境变量或 n8n Credentials 管理
-   - 大模型 API Key: 存储在工作流节点中，避免提交到代码库
+   - 所有密钥通过 `.env` 文件管理
+   - `.env` 已在 `.gitignore` 中,不会提交到代码库
 
 2. **推送频率限制**:
    - 企业微信机器人: 20条/秒
    - 大模型 API: 根据供应商限制调整批次大小
+   - 今天看啥 API: 并发数限制为3,请求间隔1秒
 
-3. **工作流版本管理**:
-   - 通过 n8n UI 导出工作流到 `n8n-workflows/` 目录
-   - 提交前检查是否包含敏感信息
-
-4. **测试环境**:
-   - 使用 mock-rss-server 进行本地测试
-   - 生产环境配置真实 RSS 源 URL
+3. **Cron 环境变量**:
+   - Cron 不会自动加载 `.env`,必须通过 `run_auto_push.sh` 启动
+   - 详见 [CRON_SETUP.md](CRON_SETUP.md)
 
 ## 相关文档
 
 - PRD.md - 详细产品需求文档
 - requirements.md - 技术需求说明
-- n8n 官方文档: https://docs.n8n.io/
-- 今天看啥 RSS: https://www.jintiankansha.me/
+- CRON_SETUP.md - Cron 定时任务配置指南
+- AUTO_PUSH_CONFIG.md - 自动推送配置说明
+- 今天看啥: https://www.jintiankansha.me/

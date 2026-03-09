@@ -57,8 +57,7 @@ cd /root/project-wb/n8n && python3 src/auto_push.py
 ├── src/                          # 核心代码
 │   ├── auto_push.py             # 自动推送主脚本 ⭐
 │   ├── llm_filter.py            # AI筛选模块
-│   ├── wechat_pusher.py         # 企业微信推送模块
-│   └── main.py                  # 入口文件（已弃用）
+│   └── wechat_pusher.py         # 企业微信推送模块
 ├── config/                       # 配置文件
 │   ├── rss-sources.json         # RSS源配置 ⭐
 │   └── keywords.json            # 筛选规则配置 ⭐
@@ -85,8 +84,6 @@ cd /root/project-wb/n8n && python3 src/auto_push.py
 │   ├── tests/                   # 测试文件归档
 │   ├── workflows/               # 旧版工作流归档
 │   └── README.md                # 归档说明
-├── n8n-workflows/                # n8n工作流（已弃用）
-├── docker-compose.yml            # Docker配置（已弃用）
 └── README.md                     # 本文档
 
 ⭐ = 新增/重要文件
@@ -263,9 +260,7 @@ grep "ERROR\|失败" /root/project-wb/n8n/logs/auto_push.log | tail -20
 - test_e2e_13pm.py - 13点推送端到端测试
 
 ### 归档的备份文件
-- rss-ai-filter-workflow.backup.json - n8n工作流备份
 - rss-sources.json.backup - RSS源配置备份
-- docker-compose-simple.yml - 简化版docker配置
 
 这些文件在 `archive/` 目录中保留，以供查阅。详见 [archive/README.md](archive/README.md)
 

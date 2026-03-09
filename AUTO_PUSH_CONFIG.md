@@ -109,21 +109,32 @@ python3 src/auto_push.py >> logs/auto_push.log 2>&1 &
 ### 测试 RSS 源
 
 ```bash
-# 测试单个 RSS 源
-curl -s "http://rss.jintiankansha.me/rss/..." | head -100
+# 测试 API4 接口获取文章
+source /root/project-wb/n8n/.env
+curl -s "http://www.jintiankansha.me/api3/query/get_topics_by_one_column?user=$API4_USER&token=$API4_TOKEN&slug=pJMG8ZXFLd" | python3 -m json.tool | head -30
 
 # 测试所有 RSS 源可访问性
-python3 -c "
-import json
-import requests
+cd /root/project-wb/n8n && python3 -c "
+import json, requests, os
+user = os.environ.get('API4_USER', '')
+token = os.environ.get('API4_TOKEN', '')
 with open('config/rss-sources.json', 'r') as f:
     sources = json.load(f)['sources']
 for s in sources:
+    if not s.get('enabled'): continue
+    slug = s.get('slug', '')
+    if not slug: continue
     try:
-        r = requests.get(s['url'], timeout=10)
-        print(f'✓ {s[\"name\"]}: {r.status_code}')
+        r = requests.get(
+            'http://www.jintiankansha.me/api3/query/get_topics_by_one_column',
+            params={'user': user, 'token': token, 'slug': slug},
+            timeout=10
+        )
+        data = r.json()
+        status = 'ok' if data.get('status') == 'success' else 'error'
+        print(f'  {\"✓\" if status == \"ok\" else \"✗\"} {s[\"name\"]}: {status}')
     except Exception as e:
-        print(f'✗ {s[\"name\"]}: {e}')
+        print(f'  ✗ {s[\"name\"]}: {e}')
 "
 ```
 

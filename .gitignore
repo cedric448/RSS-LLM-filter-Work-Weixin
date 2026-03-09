@@ -41,10 +41,6 @@ Thumbs.db
 # Docker volumes (如果有)
 volumes/
 
-# n8n 数据
-n8n-data/
-.n8n/
-
 # 测试输出
 .pytest_cache/
 .coverage

@@ -18,11 +18,7 @@
 - `test_e2e_13pm.py` - 13点推送端到端测试
 
 ### workflows/ - 备份文件
-- `rss-ai-filter-workflow.backup.json` - n8n工作流备份
 - `rss-sources.json.backup` - RSS源配置备份
-
-### 根目录
-- `docker-compose-simple.yml` - 简化版docker配置（已弃用）
 
 ## 何时查阅归档文件
 

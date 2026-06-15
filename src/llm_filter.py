@@ -18,6 +18,7 @@ KEYWORDS_CONFIG = "/root/project-wb/n8n/config/keywords.json"
 # API 配置
 LLM_API_URL = os.environ.get('LLM_API_URL', 'http://your-llm-api-endpoint')
 LLM_API_KEY = os.environ.get('LLM_API_KEY', 'Bearer your-llm-api-key-here')
+LLM_MODEL = os.environ.get('LLM_MODEL', 'kimi-k2.6-ioa')
 API_TIMEOUT = 120
 MAX_RETRIES = 3
 RETRY_DELAY = 2
@@ -64,6 +65,7 @@ def call_llm_with_retry(prompt: str) -> str:
     
     payload = {
         "prompt": prompt,
+        "model": LLM_MODEL,
         "print": True,
         "dangerouslySkipPermissions": True
     }

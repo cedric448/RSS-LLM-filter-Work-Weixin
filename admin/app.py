@@ -8,6 +8,7 @@ from functools import wraps
 from dotenv import load_dotenv
 import json
 import os
+import sqlite3
 from datetime import datetime, timedelta
 from typing import List, Dict
 
@@ -20,6 +21,7 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)  # Session 有效
 
 # 配置文件路径
 CONFIG_FILE = os.path.join(os.path.dirname(__file__), '..', 'config', 'rss-sources.json')
+PUSH_HISTORY_DB = os.path.join(os.path.dirname(__file__), '..', 'data', 'push_history.db')
 
 # 鉴权配置
 AUTH_CODE = os.environ.get('RSS_ADMIN_AUTH_CODE', 'change-this-password-in-production')
@@ -311,6 +313,70 @@ def toggle_source(source_id):
         return jsonify({
             'success': False,
             'message': '保存失败'
+        }), 500
+
+
+@app.route('/api/history', methods=['GET'])
+@require_auth
+def get_history():
+    """API: 查询推送历史记录（分页）"""
+    # 解析参数
+    page = max(1, request.args.get('page', 1, type=int))
+    page_size = min(200, max(1, request.args.get('page_size', 20, type=int)))
+    source = request.args.get('source', '').strip()
+    date = request.args.get('date', '').strip()
+
+    # 构建查询条件
+    conditions = []
+    params = []
+
+    if source:
+        conditions.append('source_name = ?')
+        params.append(source)
+
+    if date:
+        conditions.append('DATE(push_time) = ?')
+        params.append(date)
+
+    where_clause = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+
+    try:
+        conn = sqlite3.connect(PUSH_HISTORY_DB)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+
+        # 查询总数
+        cursor.execute(f'SELECT COUNT(*) FROM push_history {where_clause}', params)
+        total = cursor.fetchone()[0]
+
+        # 查询分页数据
+        offset = (page - 1) * page_size
+        cursor.execute(
+            f'SELECT article_hash, title, link, source_name, push_time '
+            f'FROM push_history {where_clause} '
+            f'ORDER BY push_time DESC LIMIT ? OFFSET ?',
+            params + [page_size, offset]
+        )
+        rows = [dict(row) for row in cursor.fetchall()]
+        conn.close()
+
+        total_pages = (total + page_size - 1) // page_size
+
+        return jsonify({
+            'success': True,
+            'data': rows,
+            'pagination': {
+                'page': page,
+                'page_size': page_size,
+                'total': total,
+                'total_pages': total_pages
+            }
+        })
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'查询失败: {str(e)}'
         }), 500
 
 
